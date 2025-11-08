@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from orchestrator.orchestrator import Orchestrator
-from teams.teams import Team
+from teams.team import Team
 from agents.agent import Agent
 import asyncio
 

@@ -29,9 +29,8 @@ class GlobalOrchestratorInput(BaseModel):
 class ProjectInput(BaseModel):
     user_id: str
     project_name: str
-    global_orchestrator: GlobalOrchestratorInput  # <--- novo campo
+    global_orchestrator: GlobalOrchestratorInput
     teams: List[TeamInput]
-
 
 # -------------------------
 # Criar projeto
@@ -56,7 +55,7 @@ async def create_project(data: ProjectInput):
     project_doc = {
         "user_id": data.user_id,
         "project_name": data.project_name,
-        "global_orchestrator": global_orch_agent,  # <--- salva no banco
+        "global_orchestrator": global_orch_agent,
         "teams": teams_data
     }
 
@@ -65,7 +64,8 @@ async def create_project(data: ProjectInput):
 
 # -------------------------
 # Rodar projeto
-# ------------------------@app.get("/run/{user_id}/{project_name}")
+# -------------------------
+@app.get("/run/{user_id}/{project_name}")
 async def run_project(user_id: str, project_name: str):
     project = await projects_collection.find_one({"user_id": user_id, "project_name": project_name})
     if not project:
@@ -75,7 +75,6 @@ async def run_project(user_id: str, project_name: str):
     global_agent = None
     if "global_orchestrator" in project:
         g = project["global_orchestrator"]
-        from agents.agent import Agent
         global_agent = Agent(g["name"], g["model_name"])
 
     # Constrói times com agentes reais

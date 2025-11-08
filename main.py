@@ -4,7 +4,9 @@ from typing import List
 from orchestrator.orchestrator import Orchestrator
 from teams.team import Team
 from agents.agent import Agent
-from database.mongo import projects_collection
+from database.mongo import projects_collection  # conexão com o Mongo (motor)
+
+from bson import ObjectId
 
 app = FastAPI()
 
@@ -55,9 +57,12 @@ async def create_project(data: ProjectInput):
         "project_name": data.project_name,
         "teams": teams_data
     }
-    await projects_collection.insert_one(project_doc)
+    result = await projects_collection.insert_one(project_doc)
 
-    return {"message": f"Projeto {data.project_name} criado para usuário {data.user_id}"}
+    return {
+        "message": f"Projeto {data.project_name} criado para usuário {data.user_id}",
+        "mongo_id": str(result.inserted_id)
+    }
 
 # -------------------------
 # Rodar projeto
@@ -80,7 +85,7 @@ async def run_project(user_id: str, project_name: str):
 
     # Atualiza resultado no MongoDB
     await projects_collection.update_one(
-        {"_id": project["_id"]},
+        {"_id": ObjectId(project["_id"])},
         {"$set": {"last_result": results}}
     )
 

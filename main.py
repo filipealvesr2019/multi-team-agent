@@ -1,12 +1,22 @@
-# main.py
 from fastapi import FastAPI
-from teams.team import Team  # seu import
+from orchestrator.orchestrator import Orchestrator
+from teams.team import Team
+from agents.agent import Agent
+import asyncio
 
 app = FastAPI()
+orch = Orchestrator()
 
-# Exemplo de endpoint simples para testar
-@app.get("/")
-async def root():
-    # só para testar a classe Team
-    dummy_team = Team("Time Teste", planner=None, manager=None, workers=[])
-    return {"message": f"Team {dummy_team.name} importado com sucesso!"}
+# Criando times simulados
+@app.on_event("startup")
+async def startup_event():
+    planner = Agent("Alice", "openai", "gpt-4")
+    manager = Agent("Bob", "anthropic", "claude-v1")
+    workers = [Agent("Carol", "openai", "gpt-3.5"), Agent("Dave", "openai", "gpt-3.5")]
+    team = Team("Frontend", planner, manager, workers)
+    orch.add_team(team)
+
+@app.get("/run")
+async def run_project():
+    results = await orch.run_project("Criar app de delivery")
+    return results

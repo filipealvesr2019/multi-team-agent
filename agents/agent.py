@@ -1,8 +1,9 @@
-# agents/agent.py
 class Agent:
-    def __init__(self, name):
+    def __init__(self, name, model_name):
         self.name = name
+        self.model_name = model_name
 
-    async def generate(self, prompt):
-        # Simula uma resposta
-        return f"{self.name} processou: {prompt}"
+    async def perform_task(self, context):
+        # Para começar, vamos simular a execução
+        # Você pode substituir aqui por chamada a modelo local tipo HuggingFace
+        return f"[{self.model_name}] executando tarefa: {context}"

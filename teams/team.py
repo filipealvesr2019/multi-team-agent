@@ -6,9 +6,13 @@ class Team:
         self.workers = workers
 
     async def execute(self, context):
-        # Simulando execução de cada worker
         results = []
+        # Planejador gera plano
+        plan = await self.planner.perform_task(context)
+        # Gerente divide tarefas
+        tasks = await self.manager.perform_task(plan)
+        # Workers executam tarefas
         for w in self.workers:
-            result = await w.perform_task(context)  # supondo que Agent tenha perform_task
+            result = await w.perform_task(tasks)
             results.append(result)
         return {"team": self.name, "output": results}

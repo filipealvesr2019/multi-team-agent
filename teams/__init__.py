@@ -1,1 +1,3 @@
-from teams.team import Team
+from .team import Team
+
+__all__ = ["Team"]

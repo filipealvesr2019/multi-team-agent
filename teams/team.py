@@ -1,18 +1,14 @@
-from fastapi import FastAPI
-from teams.team import Team
-from agents.agent import Agent
+# teams/team.py
 
-app = FastAPI()
+class Team:
+    def __init__(self, name, planner, manager, workers):
+        self.name = name
+        self.planner = planner
+        self.manager = manager
+        self.workers = workers
 
-# Criando agentes
-planner = Agent("Planner")
-manager = Agent("Manager")
-workers = [Agent(f"Worker {i}") for i in range(3)]
-
-# Criando um time
-team_alpha = Team("Alpha", planner, manager, workers)
-
-@app.get("/run")
-async def run_team():
-    result = await team_alpha.execute("Concluir projeto X")
-    return result
+    async def execute(self, context):
+        plan = await self.planner.generate(f"Plano para: {context}")
+        tasks = await self.manager.generate(f"Divida em tarefas: {plan}")
+        results = [await w.generate(f"Tarefa: {tasks}") for w in self.workers]
+        return {"team": self.name, "output": results}

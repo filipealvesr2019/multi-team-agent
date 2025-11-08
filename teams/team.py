@@ -1,5 +1,3 @@
-# teams/team.py
-
 class Team:
     def __init__(self, name, planner, manager, workers):
         self.name = name
@@ -8,7 +6,9 @@ class Team:
         self.workers = workers
 
     async def execute(self, context):
-        plan = await self.planner.generate(f"Plano para: {context}")
-        tasks = await self.manager.generate(f"Divida em tarefas: {plan}")
-        results = [await w.generate(f"Tarefa: {tasks}") for w in self.workers]
+        # Simulando execução de cada worker
+        results = []
+        for w in self.workers:
+            result = await w.perform_task(context)  # supondo que Agent tenha perform_task
+            results.append(result)
         return {"team": self.name, "output": results}

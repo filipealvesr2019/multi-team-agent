@@ -6,13 +6,22 @@ class Team:
         self.workers = workers
 
     async def execute(self, context):
-        results = []
-        # Planejador gera plano
+        logs = []
+        
         plan = await self.planner.perform_task(context)
-        # Gerente divide tarefas
-        tasks = await self.manager.perform_task(plan)
-        # Workers executam tarefas
+        logs.append(plan)
+
+        tasks = await self.manager.perform_task(plan["output"])
+        logs.append(tasks)
+
+        results = []
         for w in self.workers:
-            result = await w.perform_task(tasks)
+            result = await w.perform_task(tasks["output"])
             results.append(result)
-        return {"team": self.name, "output": results}
+            logs.append(result)
+
+        return {
+            "team": self.name,
+            "log": logs,  # 🧠 todos os pensamentos e outputs
+            "final_output": [r["output"] for r in results]
+        }

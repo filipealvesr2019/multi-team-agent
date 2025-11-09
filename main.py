@@ -143,6 +143,7 @@ async def send_prompt(user_id: str, project_name: str, data: PromptInput):
     # Executa prompt
     results = await orch.run_project(data.prompt)
 
+
     # Salva último prompt e resultado
     await projects_collection.update_one(
         {"_id": ObjectId(project["_id"])},

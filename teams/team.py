@@ -10,16 +10,21 @@ class Team:
 
         logs = []
 
+        # Planner cria plano técnico
         plan = await self.planner.perform_task(f"Crie um plano técnico detalhado para: {context}")
         logs.append(plan)
 
-        tasks = await self.manager.perform_task(f"Divida o plano a seguir em tarefas práticas para os workers:\n{plan['output']}")
+        # Manager transforma plano em tarefas práticas
+        tasks = await self.manager.perform_task(
+            f"Divida o plano a seguir em tarefas práticas para os workers:\n{plan['output']}"
+        )
         logs.append(tasks)
 
+        # Workers executam tarefas (cada um entende o contexto automaticamente)
         worker_results = []
         for idx, w in enumerate(self.workers, start=1):
             print(f"⚙️  [Worker {idx}] executando tarefa...")
-            task_prompt = f"Execute a seguinte tarefa prática:\n{tasks['output']}"
+            task_prompt = f"Execute a seguinte tarefa:\n{tasks['output']}"
             result = await w.perform_task(task_prompt)
             worker_results.append(result)
             logs.append(result)

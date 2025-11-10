@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI 
 from pydantic import BaseModel
 from typing import List
 from agents.agent import Agent
@@ -40,7 +40,6 @@ class PromptInput(BaseModel):
 # -------------------------
 @app.post("/create_project")
 async def create_project(data: ProjectInput):
-    # Cria agente global
     global_orch_agent = {
         "name": data.global_orchestrator.name,
         "model_name": data.global_orchestrator.model_name
@@ -66,63 +65,19 @@ async def create_project(data: ProjectInput):
     return {"message": f"Projeto {data.project_name} criado", "mongo_id": str(result.inserted_id)}
 
 # -------------------------
-# Rodar projeto
+# Enviar prompt
 # -------------------------
-@app.get("/run/{user_id}/{project_name}")
-async def run_project(user_id: str, project_name: str):
-    project = await projects_collection.find_one({"user_id": user_id, "project_name": project_name})
-    if not project:
-        return {"error": "Projeto não encontrado"}
-
-    # Inicializa agente global
-    global_agent = None
-    if "global_orchestrator" in project:
-        g = project["global_orchestrator"]
-        global_agent = Agent(g["name"], g["model_name"])
-
-    # Constrói times com agentes reais
-    teams_config = []
-    for t in project["teams"]:
-        planner = Agent(t["planner"]["name"], t["planner"]["model_name"])
-        manager = Agent(t["manager"]["name"], t["manager"]["model_name"])
-        workers = [Agent(w["name"], w["model_name"]) for w in t["workers"]]
-        teams_config.append({
-            "name": t["name"],
-            "planner": planner,
-            "manager": manager,
-            "workers": workers
-        })
-
-    # Inicializa orquestrador global com agente global
-    orch = Orchestrator(teams_config)
-    if global_agent:
-        orch.global_agent = global_agent
-
-    results = await orch.run_project(f"Tarefa do {project_name}")
-
-    # Salva resultado no banco
-    await projects_collection.update_one(
-        {"_id": ObjectId(project["_id"])},
-        {"$set": {"last_result": results}}
-    )
-
-    return results
-
-
 @app.post("/prompt/{user_id}/{project_name}")
 async def send_prompt(user_id: str, project_name: str, data: PromptInput):
-    # Busca projeto no MongoDB
     project = await projects_collection.find_one({"user_id": user_id, "project_name": project_name})
     if not project:
         return {"error": "Projeto não encontrado"}
 
-    # Inicializa agente global
     global_agent = None
     if "global_orchestrator" in project:
         g = project["global_orchestrator"]
         global_agent = Agent(g["name"], g["model_name"])
 
-    # Constrói times com agentes reais
     teams_config = []
     for t in project["teams"]:
         planner = Agent(t["planner"]["name"], t["planner"]["model_name"])
@@ -135,16 +90,12 @@ async def send_prompt(user_id: str, project_name: str, data: PromptInput):
             "workers": workers
         })
 
-    # Inicializa orquestrador global
     orch = Orchestrator(teams_config)
     if global_agent:
         orch.global_agent = global_agent
 
-    # Executa prompt
     results = await orch.run_project(data.prompt)
 
-
-    # Salva último prompt e resultado
     await projects_collection.update_one(
         {"_id": ObjectId(project["_id"])},
         {"$set": {"last_prompt": data.prompt, "last_result": results}}

@@ -93,7 +93,7 @@ class AgenteHumanizado:
 # Exemplo de uso
 # ========================
 async def main():
-    MODEL = "google/gemma-3-1b-it"
+    MODEL = "google/gemma-1b-it"
     agente = AgenteHumanizado(MODEL)
 
     prompt_usuario = (
